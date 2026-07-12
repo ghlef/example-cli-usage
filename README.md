@@ -1,5 +1,77 @@
 <div align="center">
-    <picture>
+ name: Run Dependabot
+on:
+  workflow_dispatch:
+
+jobs:
+  run-dependabot:
+    permissions:
+      # Important not to give Dependabot write access in case it runs arbitrary
+      # code as some ecosystems do.
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+        # Checkout code to get the Dependabot CLI input file
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # Checkout to a directory to keep the working dir clean for the update.
+        with:
+          path: repo
+
+      - name: Download CLI
+        env:
+          # To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo dependabot/cli -p "*linux-amd64.tar.gz"
+          tar xzvf *.tar.gz >/dev/null 2>&1
+          ./dependabot --version
+
+      - name: Run Dependabot
+        env:
+          # GITHUB_TOKEN shows an example of how Dependabot CLI can be used with secrets.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Run Dependabot CLI with options:
+          # -f: the path to the job input
+          # --local: use the locally checked out code instead of cloning each time
+          # --timeout: the maximum time to wait for a job to finish
+          ./dependabot update \
+            -f repo/.github/dependabot/go.yml \
+            --local repo \
+            --timeout 20m >> result.jsonl || true
+          ./dependabot update \
+            -f repo/.github/dependabot/bundler.yml \
+            --local repo \
+            --timeout 20m >> result.jsonl || true
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependabot-result
+          path: result.jsonl
+
+  create-prs:
+    permissions:
+      # This job creates PRs, so it needs write access.
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    needs: run-dependabot
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download result
+        uses: actions/download-artifact@v4
+        with:
+          name: dependabot-result
+
+      - name: Create PRs
+        env:
+          # To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable.
+          GH_TOKEN: ${{ github.token }}
+        run: bash create.sh result.jsonl   <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/7659/174594540-5e29e523-396a-465b-9a6e-6cab5b15a568.svg">
         <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/7659/174594559-0b3ddaa7-e75b-4f10-9dee-b51431a9fd4c.svg">
         <img src="https://user-images.githubusercontent.com/7659/174594540-5e29e523-396a-465b-9a6e-6cab5b15a568.svg" alt="Dependabot" width="336">
