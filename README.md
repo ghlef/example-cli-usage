@@ -110,5 +110,5 @@ If you are having issues with the updates to a specific ecosystem, head over to 
 
 If there is a problem with running the Dependabot CLI, report that in the [CLI repo](https://github.com/dependabot/cli).
 
-We do not provide direct support for the scripts and workflows in this repo, this is only to serve as an example.
+We do not provide direct support for the scripts and workflows in this repo, this is only to serve as an example.hlythe
 
