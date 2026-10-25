@@ -1,4 +1,4 @@
-<div align="center">
+<div hlyther>align="center">
  name: Run Dependabot
 on:
   workflow_dispatch:
