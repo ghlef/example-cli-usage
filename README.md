@@ -1,4 +1,4 @@
-<div align="center">
+https://github.com/ghlef/baml-demoshlyther/commit/16873feb442426f858bb69a27038667fcc152fbd<div align="center">
  name: Run Dependabot
 on:
   workflow_dispatch:
